@@ -150,8 +150,7 @@ int main(int argc, char **argv){
     string repoPath = argv[1];
     string extidFile = argv[2];
     string outFile = argv[3];
-    std::string stoplistFile = argv[4];
-    std::string queryTermFile = argv[5];
+    std::string queryTermFile = argv[4];
 
     ifstream extidStream;
     extidStream.open(extidFile.c_str());
