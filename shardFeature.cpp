@@ -20,7 +20,7 @@ using namespace indri::api;
 
 
 
-void readQueryTerms(set<int> &queryTerms, const char *queryTermFile, indri::index::Index * index){
+void readQueryTerms(set<int> &queryTerms, const char *queryTermFile, indri::index::Index * index, indri::collection::Repository & repo){
 	queryTerms.clear();
 	ifstream queryStream;
 	queryStream.open(queryTermFile);
@@ -38,10 +38,15 @@ void readQueryTerms(set<int> &queryTerms, const char *queryTermFile, indri::inde
 				break;
 			}
 		}
+		
+		string stem = repo.processTerm(line);
+		if(stem.length() <= 0) 
+			continue;
 
-		termID = index->term(line);
+		termID = index->term(stem);
 		if(termID > 0){
 			queryTerms.insert(termID);
+			
 		}	
 	}
 	queryStream.close();
@@ -165,7 +170,7 @@ int main(int argc, char **argv){
 
     // read query terms
     set<int> queryTerms;
-    readQueryTerms(queryTerms, queryTermFile.c_str(), index);
+    readQueryTerms(queryTerms, queryTermFile.c_str(), index, r);
 
     // Features
     map<int, FeatVec> features;
