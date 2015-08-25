@@ -44,9 +44,9 @@ shardmap_file.close()
 
 for shardmap in shardmaps:
     execuatable = "./shardFeature"
-    arguments = "{0} {1} {2} {4}".format(args.repo_dir,
+    arguments = "{0} {1} {2} {3}".format(args.repo_dir,
                                          args.shardmaps_dir + '/' + shardmap,
-                                         feat_dir + '/' + shardmap,
+                                         feat_dir + '/' + shardmap + '.feat',
                                          args.query_term_file)
     log = "/tmp/zhuyund_kmeans.log"
     out = base_dir + "/out"

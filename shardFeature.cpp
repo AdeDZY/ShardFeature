@@ -42,11 +42,9 @@ void readQueryTerms(set<int> &queryTerms, const char *queryTermFile, indri::inde
 		termID = index->term(line);
 		if(termID > 0){
 			queryTerms.insert(termID);
-			cout<<line<<" "<<termID<<endl;
 		}	
 	}
 	queryStream.close();
-	cout<<"query terms: "<<queryTerms.size()<<endl;
 }
 
 struct FeatVec{
