@@ -25,4 +25,7 @@ for line in args.query_file:
     term_ids = [dic[term] for term in terms]
     s = ' '.join(term_ids)
     print str(qid) + ':' + s
+    qid += 1
+    if qid == 803:
+        qid += 1
 
