@@ -98,5 +98,5 @@ for query_id, query in queries:
     outfile.close()
 
 valid_file = open(base_dir + "/nvalid", 'w')
-valid_file.write(n_valid_shards)
+valid_file.write(str(n_valid_shards))
 valid_file.close()
