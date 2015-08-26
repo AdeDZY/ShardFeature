@@ -2,24 +2,37 @@
 
 __author__ = 'zhuyund'
 import argparse
-import argparse
-import os, sys
-import jobWriter
+import os
 from os import listdir
 from os.path import isfile, join
+import math
+
+
+def get_n_max(perc, base_dir):
+    """
+    get maximum number of shards to be selected
+    :param perc: float, percentage of shards
+    :param base_dir: str. run_base_dir
+    :return: int. maximum number of shards
+    """
+    # get number of shards with > 1000 documents
+    valid_file = open(base_dir + '/nvalid')
+    n_valid_shards = int(valid_file.readline())
+    valid_file.close()
+    n_max = math.ceil(perc * n_valid_shards)
+    return n_max
 
 
 parser = argparse.ArgumentParser()
 parser.add_argument("partition_name")
-parser.add_argument("shardlim", type=int, help="maximum number of shards to be selected")
+parser.add_argument("shardlim", type=float, help="percentage of shards to be selected")
 parser.add_argument("--miu", "-i", type=float, default=0.0001)
 parser.add_argument("--method", "-m", default="lm")
 args = parser.parse_args()
 
 base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
-
 rankings_dir = base_dir + "/rankings/"
-
+n_max = get_n_max(args.shardlim, base_dir)
 run_dir = "/bos/usr0/zhuyund/fedsearch/output/rankings/cent/{0}/{3}_lim{1}_miu{2}/".format(args.partition_name,
                                                                                            args.shardlim,
                                                                                            args.miu,
@@ -29,8 +42,8 @@ if not os.path.exists(run_dir):
 
 shardlist_file = open("{0}/all.shardlist".format(run_dir), 'w')
 
-
-qids = [f.strip().split('.')[0].split('_')[0] for f in listdir(rankings_dir) if isfile(join(rankings_dir, f)) and args.method in f]
+qids = [f.strip().split('.')[0].split('_')[0] for f in listdir(rankings_dir)
+        if isfile(join(rankings_dir, f)) and args.method in f]
 
 for qid in qids:
     ranking = open("{0}/{1}_{2}.rank".format(rankings_dir, qid, args.method))
@@ -38,7 +51,7 @@ for qid in qids:
     for i, line in enumerate(ranking):
         shard, score = line.split()
         shards.append(shard)
-        if i == args.shardlim - 1:
+        if i == n_max - 1:
             break
     ranking.close()
     shardlist_file.write(qid + ' ' + ' '.join(shards))

@@ -61,6 +61,9 @@ for shard in shards:
     shards_size[shard] = size
     shards_tf[shard] = shard_tf
 
+# count number of shards with > 1000 documents
+n_valid_shards = 0
+
 # get reference model for smoothing
 ref_dv = {} # average of doc vectors
 ref = {} # tf_in_shard / total_tf_of_shard
@@ -70,6 +73,10 @@ for shard in shards:
     feat = shards_features[shard]
     size = shards_size[shard]
     shard_tf = shards_tf[shard]
+
+    if size > 1000:
+        n_valid_shards += 1
+
     ndocs += size
     nterms += shard_tf
     for term in feat:
@@ -90,3 +97,6 @@ for query_id, query in queries:
         outfile.write('{0} {1}\n'.format(shard, score))
     outfile.close()
 
+valid_file = open(base_dir + "/nvalid", 'w')
+valid_file.write(n_valid_shards)
+valid_file.close()
