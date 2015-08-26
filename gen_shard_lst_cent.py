@@ -13,7 +13,7 @@ def read_feat_file(filepath):
         if t == '-1':
             shard_size = int(df)
             continue
-        p = float(sum_prob) / shard_size
+        p = float(sum_prob)
         term2prob[t] = p
     return term2prob, shard_size
 
@@ -64,7 +64,7 @@ for shard in shards:
     size = shards_size[shard]
     ndocs += size
     for term in cent:
-        ref[term] = ref.get(term, 0) + cent[term] * size
+        ref[term] = ref.get(term, 0) + cent[term] 
 for term in ref:
     ref[term] /= ndocs
 
