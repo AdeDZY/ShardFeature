@@ -12,7 +12,7 @@ from os.path import isfile, join
 parser = argparse.ArgumentParser()
 parser.add_argument("partition_name")
 parser.add_argument("shardlim", type=int, help="maximum number of shards to be selected")
-parser.add_argument("miu", type=float)
+parser.add_argument("--miu", "-i", type=float, default=0.0001)
 parser.add_argument("--method", "-m", default="lm")
 args = parser.parse_args()
 
@@ -30,7 +30,7 @@ if not os.path.exists(run_dir):
 shardlist_file = open("{0}/all.shardlist".format(run_dir), 'w')
 
 
-qids = [f.strip().split('.')[0] for f in listdir(rankings_dir) if isfile(join(rankings_dir, f))]
+qids = [f.strip().split('.')[0].split('_')[0] for f in listdir(rankings_dir) if isfile(join(rankings_dir, f)) and args.method in f]
 
 for qid in qids:
     ranking = open("{0}/{1}_{2}.rank".format(rankings_dir, qid, args.method))
@@ -45,6 +45,7 @@ for qid in qids:
     shardlist_file.write('\n')
 
 shardlist_file.close()
+print run_dir 
 
 
 

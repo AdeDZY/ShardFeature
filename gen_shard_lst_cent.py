@@ -16,15 +16,15 @@ def read_feat_file(filepath):
             shard_tf = int(sum_tf)
             continue
         p = float(sum_prob) / shard_size
-        term2feat[t] = (df, sum_tf, p)
+        term2feat[t] = (int(df), int(sum_tf), p)
     return term2feat, shard_size, shard_tf
 
 parser = argparse.ArgumentParser()
 parser.add_argument("partition_name")
 parser.add_argument("int_query_file", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
 parser.add_argument("--method", "-m", default="lm")
-parser.add_argument("--miu", "-i", type=float, default=0.001)
-parser.add_argument("--lamb", "-l", type=float, default=-1)
+parser.add_argument("--miu", "-i", type=float, default=0.0001)
+parser.add_argument("--lamb", "-l", type=float, default=500)
 
 args = parser.parse_args()
 
@@ -53,6 +53,7 @@ for shard in shards:
     feat_file_path = "{0}/features/{1}.feat".format(base_dir, shard)
     if not os.path.exists(feat_file_path):
         shards_size[shard] = 0
+        shards_tf[shard] = 0
         shards_features[shard] = {}
         continue
     feat, size, shard_tf = read_feat_file(feat_file_path)
@@ -81,7 +82,7 @@ for term in ref_dv:
 
 
 for query_id, query in queries:
-    res = cent_kld.gen_lst(shards_features, ref_dv, ref, query, args.method, args.miu, args.lamb, shards_tf)
+    res = cent_kld.gen_lst(shards_features, ref_dv, ref, query, args.method, args.miu, args.lamb, shards_tf, shards_size)
 
     outfile_path = "{0}/{1}_{2}.rank".format(res_dir, query_id, args.method)
     outfile = open(outfile_path, 'w')
