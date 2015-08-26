@@ -6,7 +6,7 @@ import numpy as np
 def score_lm(qterms, cent, ref, miu):
     s = []
     for token in qterms:
-        pref = ref.get(token, 0.5)
+        pref = ref.get(token, 0.000001)
         pcent = (1 - miu) * cent.get(token, 0)+ miu * pref
         contri = np.log(pcent)
         s.append(contri)

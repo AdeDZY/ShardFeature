@@ -21,7 +21,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("partition_name")
 parser.add_argument("int_query_file", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
 parser.add_argument("--method", "-m", default="lm")
-parser.add_argument("--miu", "-i", type=float, default=0.01)
+parser.add_argument("--miu", "-i", type=float, default=0.001)
 parser.add_argument("--cent", "-c", default="sample")
 
 args = parser.parse_args()
