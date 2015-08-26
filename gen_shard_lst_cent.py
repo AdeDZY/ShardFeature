@@ -1,69 +1,76 @@
 #!/opt/python27/bin/python
 import argparse
-import sys, os
+import os
 import cent_kld
 
 
-def read_prob_file(filepath, terms):
-	term2prob = {}
-	nline = 0
-	nfound = 0
-	for line in open(filepath):
-		nline += 1
-		if ',' not in line:
-			break
-		t, pstr = line.split(',')
-		t = t.strip()
-		if t in terms:
-			p = float(pstr)
-			term2prob[t.strip()] = p 		
-			nfound += 1
-			if nfound == len(terms):
-				break
-	return term2prob
+def read_feat_file(filepath):
+    term2prob = {}
+    shard_size = 0
+    for line in open(filepath):
+        t, df, sum_tf, sum_prob = line.split()
+        t = t.strip()
+        if t == '-1':
+            shard_size = df
+            continue
+        p = float(sum_prob) / shard_size
+        term2prob[t] = p
+    return term2prob, shard_size
 
 parser = argparse.ArgumentParser()
-parser.add_argument("centroidsDir")
-parser.add_argument("reference")
-parser.add_argument("queryFile", type=argparse.FileType('r'))
-parser.add_argument("shardlim", type=int)
-parser.add_argument("resDir")
-parser.add_argument("nCentroids", type=int)
-parser.add_argument("--method","-m", default="lm")
-parser.add_argument("--miu","-i", type=float, default=0.2)
-parser.add_argument("--cent","-c", default="sample")
+parser.add_argument("partition_name")
+parser.add_argument("intQueryFile", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
+parser.add_argument("--method", "-m", default="lm")
+parser.add_argument("--miu", "-i", type=float, default=0.01)
+parser.add_argument("--cent", "-c", default="sample")
 
 args = parser.parse_args()
 
-if not os.path.exists(args.resDir):
-	os.makedirs(args.resDir)
+base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
 
-outfile = open("{0}/all.shardlist".format(args.resDir), 'w')
-
-qterms = {}
 queries = []
 for query in args.queryFile:
-	query = query.strip()
-	queries.append(query)	
-	for t in query.split():
-		qterms[t] = 1
+    query = query.strip()
+    query_id, query = query.split(":")
+    queries.append((query_id, query))
 
-ref = read_prob_file(args.reference, qterms)
-centroids = []
-for i in range(1, args.nCentroids + 1):
-	cent = {}
-	if args.cent == "sample":
-		cent = read_prob_file("{0}/{1}".format(args.centroidsDir, i), qterms)
-	else:	
-		cent = read_prob_file("{0}/{1}.centroid".format(args.centroidsDir, i), qterms)
-	centroids.append(cent)
+res_dir = base_dir + "/rankings/"
+if not os.path.exists(res_dir):
+    os.makedirs(res_dir)
 
-i = 0
-for query in queries:
-	i += 1
-	res = cent_kld.gen_lst(centroids, ref, args.nCentroids, query, args.method, args.miu)
-	outfile.write(str(i-1) + ' ')
-	for s, q in res[0: args.shardlim]:
-		outfile.write('{0} '.format(q))	
-	outfile.write('\n')
+shard_file = base_dir + "/shards"
+shards = []
+for line in open(shard_file):
+    shards.append(line.strip())
+
+# read in all feature files
+shards_features = {}
+shards_size = {}
+for shard in shards:
+    feat_file_path = "{0}/features/{1}.feat".format(base_dir, shard)
+    cent, size = read_feat_file(feat_file_path)
+    shards_features[shard] = cent
+    shards_size[shard] = size
+
+# get reference model for smoothing
+ref = {}
+ndocs = 0
+for shard in shards:
+    cent = shards_features[shard]
+    size = shards_size[shard]
+    ndocs += size
+    for term in cent:
+        ref[term] = ref.get(term, 0) + cent[term] * size
+for term in ref:
+    ref[term] /= ndocs
+
+
+for query_id, query in queries:
+    res = cent_kld.gen_lst(shards_features, ref, query, args.method, args.miu)
+
+    outfile_path = "{0}/{1}.rank".format(res_dir, query_id)
+    outfile = open(outfile_path, 'w')
+    for score, shard in res:
+        outfile.write('{0} {1}\n'.format(shard, score))
+    outfile.close()
 
