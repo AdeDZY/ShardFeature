@@ -11,10 +11,12 @@ def read_feat_file(filepath):
     for line in open(filepath):
         t, df, sum_tf, sum_prob = line.split()
         t = t.strip()
-        if t == '-1':
+        if '-1' in t :
             shard_size = int(df)
             shard_tf = int(sum_tf)
             continue
+        if shard_size == 0:
+		    print filepath
         p = float(sum_prob) / shard_size
         term2feat[t] = (int(df), int(sum_tf), p)
     return term2feat, shard_size, shard_tf
