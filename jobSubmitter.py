@@ -30,6 +30,14 @@ for line in open(base_dir + "/shards"):
     else:
         print "wrong job type!"
 
+    while True:
+        query = "condor_q zhuyund | grep " + "\""+ "shardFeature"+ "\"" + "| wc -l"
+        out = os.popen(query)
+        nRunning = int(out.readline())
+        print nRunning
+        if nRunning < 5:
+            break
+        time.sleep(args.sleep)
     cmd = "condor_submit " + job_path
     os.system(cmd)
     n += 1

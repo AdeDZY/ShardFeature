@@ -16,13 +16,13 @@ args = parser.parse_args()
 
 dic = {}
 for line in args.query_term2int_file:
-    term, term_id = line.split()
+    term, term_id = line.split()[0:2]
     dic[term] = term_id
 
 qid = args.start_query_id
 for line in args.query_file:
     terms = line.split()
-    term_ids = [dic[term] for term in terms]
+    term_ids = [dic[term] for term in terms if term in dic]
     s = ' '.join(term_ids)
     print str(qid) + ':' + s
     qid += 1
