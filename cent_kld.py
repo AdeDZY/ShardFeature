@@ -114,5 +114,5 @@ def merge_res(res1, res2, w1, w2):
     for s, shard in res1:
         res[shard] = s * w1
     for s, shard in res2:
-        res[shard] += s * w2;
+        res[shard] = res.get(shard, 0) + s * w2;
     return sorted(res, reverse=True)
