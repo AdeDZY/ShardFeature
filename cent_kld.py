@@ -89,6 +89,9 @@ def gen_lst_bigram(shards_features, ref_dv, ref, query, method, miu, lamb, shard
         qbigrams.append(gram)
 
     res = []
+    if not qbigrams:
+        return res
+
     for shard in shards_features:
         if shards_size[shard] <= 0:
             continue
@@ -111,6 +114,11 @@ def gen_lst_bigram(shards_features, ref_dv, ref, query, method, miu, lamb, shard
 
 def merge_res(res1, res2, w1, w2):
     res = {}
+    if not res1:
+        return res2
+    if not res2:
+        return res1
+
     for s, shard in res1:
         res[shard] = s * w1
     for s, shard in res2:
