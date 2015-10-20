@@ -17,10 +17,12 @@ def get_n_max(perc, base_dir):
     """
     # get number of shards with > 1000 documents
     valid_file = open(base_dir + '/nvalid')
+
     n_valid_shards = int(valid_file.readline())
     valid_file.close()
-    n_max = math.ceil(perc * n_valid_shards)
-    return n_max
+    _max = math.ceil(perc * n_valid_shards)
+
+    return _max
 
 
 parser = argparse.ArgumentParser()
@@ -58,7 +60,6 @@ for qid in qids:
     shardlist_file.write('\n')
 
 shardlist_file.close()
-print run_dir 
-
+print run_dir
 
 

@@ -78,3 +78,41 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
     sorted_res = sorted(res, reverse=True)
     return sorted_res
 
+
+def gen_lst_bigram(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, shards_size):
+    if lamb < 0:
+        lamb = 25205000.0 / (len(shards_features) * 0.6) * 100
+    qterms = query.split()
+    qbigrams = []
+    for i in range(0, len(qterms) - 1):
+        gram = qterms[i] + '_' + qterms[i + 1]
+        qbigrams.append(gram)
+
+    res = []
+    for shard in shards_features:
+        if shards_size[shard] <= 0:
+            continue
+        feat = shards_features[shard]
+
+        if method == 'kld':
+            s = score_kld(qbigrams, feat, ref_dv, miu)
+            res.append((s, shard))
+        if method == "lm":
+            s = score_lm(qbigrams, feat, ref, miu)
+            if s <= 0:
+                res.append((s, shard))
+        if method == "indri":
+            s = score_indri(qbigrams, feat, ref_dv, miu, lamb, shards_tf[shard], shards_size[shard])
+            res.append((s, shard))
+
+    sorted_res = sorted(res, reverse=True)
+    return sorted_res
+
+
+def merge_res(res1, res2, w1, w2):
+    res = {}
+    for s, shard in res1:
+        res[shard] = s * w1
+    for s, shard in res2:
+        res[shard] += s * w2;
+    return sorted(res, reverse=True)
