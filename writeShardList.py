@@ -36,7 +36,7 @@ args = parser.parse_args()
 base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
 rankings_dir = base_dir + "/rankings/"
 n_max = get_n_max(args.shardlim, base_dir)
-run_dir = "/bos/usr0/zhuyund/fedsearch/output/rankings/cent/{0}/{3}_lim{1}_miu{2}{3}/".format(args.partition_name,
+run_dir = "/bos/usr0/zhuyund/fedsearch/output/rankings/cent/{0}/{3}_lim{1}_miu{2}{3}{4}/".format(args.partition_name,
                                                                                               args.shardlim,
                                                                                               args.miu,
                                                                                               args.method,
@@ -47,7 +47,7 @@ if not os.path.exists(run_dir):
 shardlist_file = open("{0}/all.shardlist".format(run_dir), 'w')
 
 qids = [f.strip().split('.')[0].split('_')[0] for f in listdir(rankings_dir)
-        if isfile(join(rankings_dir, f)) and args.method in f]
+        if isfile(join(rankings_dir, f)) and args.method in f and args.type in f]
 
 for qid in qids:
     ranking = open("{0}/{1}_{2}.rank{3}".format(rankings_dir, qid, args.method, '_' + args.type))
