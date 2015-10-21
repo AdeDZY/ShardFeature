@@ -16,7 +16,7 @@ def read_feat_file(filepath):
             shard_tf = int(sum_tf)
             continue
         if shard_size == 0:
-		    print filepath
+            print filepath
         p = float(sum_prob) / shard_size
         term2feat[t] = (int(df), int(sum_tf), p)
     return term2feat, shard_size, shard_tf
@@ -61,6 +61,7 @@ def main():
     parser.add_argument("--method", "-m", default="lm")
     parser.add_argument("--miu", "-i", type=float, default=0.0001)
     parser.add_argument("--lamb", "-l", type=float, default=500)
+    parser.add_argument("--type", "-t", type=string, default="unigram", help="unigram(default), bigram")
 
     args = parser.parse_args()
 
@@ -100,6 +101,9 @@ def main():
         shards_size[shard] = size
         shards_tf[shard] = shard_tf
 
+        if args.type == "unigram":
+            continue
+
         feat_file_path = "{0}/features/{1}.feat_bigram".format(base_dir, shard)
         if not os.path.exists(feat_file_path):
             shards_tf_bigram[shard] = 0
@@ -121,17 +125,23 @@ def main():
         res = cent_kld.gen_lst(shards_features, ref_dv, ref, query,
                                args.method, args.miu, args.lamb,
                                shards_tf, shards_size)
-        res_bigram = cent_kld.gen_lst_bigram(shards_features_bigram, ref_dv_bigram, ref_bigram, query,
+        if args.type == "bigram":
+            res_bigram = cent_kld.gen_lst_bigram(shards_features_bigram, ref_dv_bigram, ref_bigram, query,
                                              args.method, args.miu, args.lamb,
                                              shards_tf_bigram, shards_size)
 
-        res_merged = cent_kld.merge_res(res, res_bigram, 0.8, 0.2)
+            res_merged = cent_kld.merge_res(res, res_bigram, 0.8, 0.2)
+
         outfile_path = "{0}/{1}_{2}.rank".format(res_dir, query_id, args.method)
         outfile = open(outfile_path, 'w')
         for score, shard in res:
             outfile.write('{0} {1}\n'.format(shard, score))
         outfile.close()
         outfile_path = "{0}/{1}_{2}.rank_bigram".format(res_dir, query_id, args.method)
+
+        if args.type == "unigram":
+            continue
+
         outfile = open(outfile_path, 'w')
         for score, shard in res_bigram:
             outfile.write('{0} {1}\n'.format(shard, score))
