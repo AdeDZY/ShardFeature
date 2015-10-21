@@ -117,9 +117,11 @@ def main():
     n_valid_shards = len([size for size in shards_size.values() if size >= 1000])
 
     ref = get_ref(shards_features, shards_tf)
-    ref_bigram = get_ref(shards_features_bigram, shards_tf_bigram)
     ref_dv = get_ref_dv(shards_features, shards_size)
-    ref_dv_bigram = get_ref_dv(shards_features_bigram, shards_size)
+
+    if args.type == "bigram":
+        ref_bigram = get_ref(shards_features_bigram, shards_tf_bigram)
+        ref_dv_bigram = get_ref_dv(shards_features_bigram, shards_size)
 
     for query_id, query in queries:
         res = cent_kld.gen_lst(shards_features, ref_dv, ref, query,
@@ -137,11 +139,10 @@ def main():
         for score, shard in res:
             outfile.write('{0} {1}\n'.format(shard, score))
         outfile.close()
-        outfile_path = "{0}/{1}_{2}.rank_bigram".format(res_dir, query_id, args.method)
 
         if args.type == "unigram":
             continue
-
+        outfile_path = "{0}/{1}_{2}.rank_bigram".format(res_dir, query_id, args.method)
         outfile = open(outfile_path, 'w')
         for score, shard in res_bigram:
             outfile.write('{0} {1}\n'.format(shard, score))
