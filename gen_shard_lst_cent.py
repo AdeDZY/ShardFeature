@@ -125,7 +125,7 @@ def main():
                                              args.method, args.miu, args.lamb,
                                              shards_tf_bigram, shards_size)
 
-        res_merged = cent_kld.merge_res(res, res_bigram, 0.8, 0.2)
+        res_merged = cent_kld.merge_res(res, res_bigram, 0.5, 0.5)
         outfile_path = "{0}/{1}_{2}.rank".format(res_dir, query_id, args.method)
         outfile = open(outfile_path, 'w')
         for score, shard in res:
