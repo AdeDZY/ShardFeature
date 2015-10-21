@@ -118,9 +118,11 @@ def merge_res(res1, res2, w1, w2):
         return res2
     if not res2:
         return res1
-
+	
+    min1 = res1[-1][0] * 1.5
+    min2 = res2[-1][0] * 1.5
     for s, shard in res1:
-        res[shard] = s * w1
+        res[shard] = s * w1 + min2 * w2
     for s, shard in res2:
-        res[shard] = res.get(shard, 0) + s * w2;
+        res[shard] = res.get(shard, min1 * w1) + s * w2 - min2 * w2;
     return sorted([(s, shard) for shard, s in res.items()], reverse=True)
