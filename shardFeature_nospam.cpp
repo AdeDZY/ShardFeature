@@ -213,7 +213,7 @@ int main(int argc, char **argv){
 	features[-1] = FeatVec();
 
 
-    vector <string> extids;
+    vector <string> tmpextids;
     vector <int> intids;
     int intid = 0;
 
@@ -231,15 +231,14 @@ int main(int argc, char **argv){
          extid = iter->first;
 
 
-        extids.clear();
-        extids.push_back(extid);
+        tmpextids.clear();
+        tmpextids.push_back(extid);
 
-        intids = IndexEnv.documentIDsFromMetadata("docno", extids);
+        intids = IndexEnv.documentIDsFromMetadata("docno", tmpextids);
         intid = intids[0];
         get_document_vector(index, intid, queryTerms, features);
 
     }
-    extidStream.close();
 
     IndexEnv.close();
     r.close();
