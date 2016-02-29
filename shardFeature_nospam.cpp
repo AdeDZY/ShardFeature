@@ -174,7 +174,13 @@ void writeFeatures(const unordered_map<int, FeatVec> &features,
     outStream.open(outFile.c_str());
 
     unordered_map<int, FeatVec>::const_iterator it;
-    for(it = features.begin(); it != features.end(); it++){
+    vector<string> key_list;
+    for (it=features.begin(); it != features.end(); ++it) {
+        key_list.push_back(it->first);
+    }
+    key_list.sort();
+    for (vector<string>::iterator it2=key_list.begin(); it2 != key_list.end(); ++it2) {
+        it = features.find(*it2);
         outStream<<it->first;
         outStream<<" ";
         outStream<<it->second.df<<" "<<it->second.sum_tf<<" "<<it->second.sum_prob<<endl;
