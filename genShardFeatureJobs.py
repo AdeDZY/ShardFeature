@@ -18,6 +18,8 @@ parser.add_argument("shardmaps_dir")
 parser.add_argument("repo_dir")
 parser.add_argument("query_term_file")
 parser.add_argument("--bigram", "-b", action="store_true")
+parser.add_argument("--nospam", "-s", action="store_true")
+parser.add_argument("--spamfile", "-f", type="string", default="/bos/usr0/zhuyund/fedsearch/cw09b.spam")
 args = parser.parse_args()
 
 base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
@@ -49,6 +51,13 @@ for shardmap in shardmaps:
                                          args.shardmaps_dir + '/' + shardmap,
                                          feat_dir + '/' + shardmap + '.feat',
                                          args.query_term_file)
+    if args.nospam:
+        execuatable = "./shardFeature_nospam"
+        arguments = "{0} {1} {2} {3} {4}".format(args.repo_dir,
+                                         args.shardmaps_dir + '/' + shardmap,
+                                         feat_dir + '/' + shardmap + '.feat',
+                                         args.query_term_file,
+                                         args.spam_file)
     if args.bigram:
         execuatable = "./shardFeature_bigram"
         arguments = "{0} {1} {2} {3}".format(args.repo_dir,
