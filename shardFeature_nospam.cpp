@@ -109,10 +109,10 @@ struct FeatVec{
 void get_document_vector(indri::index::Index *index,
                          const int docid,
                          const set<int> &queryTerms,
-                         map<int, FeatVec> &features) {
+                         unordered_map<int, FeatVec> &features) {
 
-    map<int, int> docVec;
-    map<int, int>::iterator docVecIt;
+    unordered_map<int, int> docVec;
+    unordered_map<int, int>::iterator docVecIt;
 
     const indri::index::TermList *list = index->termList(docid);
     indri::utility::greedy_vector <int> &terms = (indri::utility::greedy_vector <int> &) list->terms();
@@ -145,7 +145,7 @@ void get_document_vector(indri::index::Index *index,
 		return;
 	}
     // update feature
-    map<int, int>::iterator it;
+    unordered_map<int, int>::iterator it;
     int termID, freq;
     for(it = docVec.begin(); it != docVec.end(); it++){
         termID = it->first;
@@ -167,13 +167,13 @@ void get_document_vector(indri::index::Index *index,
 
 }
 
-void writeFeatures(const map<int, FeatVec> &features,
+void writeFeatures(const unordered_map<int, FeatVec> &features,
                    const string outFile){
 
     ofstream outStream;
     outStream.open(outFile.c_str());
 
-    map<int, FeatVec>::const_iterator it;
+    unordered_map<int, FeatVec>::const_iterator it;
     for(it = features.begin(); it != features.end(); it++){
         outStream<<it->first;
         outStream<<" ";
@@ -209,7 +209,7 @@ int main(int argc, char **argv){
     filterSpams(spamFile, extids);
 
     // Features
-    map<int, FeatVec> features;
+    unordered_map<int, FeatVec> features;
 	features[-1] = FeatVec();
 
 
@@ -221,6 +221,7 @@ int main(int argc, char **argv){
     string outLine;
     int indexId = 0;
     int ndoc = 0;
+
     unordered_map<string, int>::iterator iter;
     for(iter = extids.begin(); iter != extids.end(); iter++)
     {
@@ -230,14 +231,14 @@ int main(int argc, char **argv){
 
          extid = iter->first;
 
-
-        tmpextids.clear();
         tmpextids.push_back(extid);
+    }
+    intids = IndexEnv.documentIDsFromMetadata("docno", tmpextids);
 
-        intids = IndexEnv.documentIDsFromMetadata("docno", tmpextids);
-        intid = intids[0];
+    for(int i = 0; i < intids.size(); i++)
+    {
+        intid = intids[i];
         get_document_vector(index, intid, queryTerms, features);
-
     }
 
     IndexEnv.close();
