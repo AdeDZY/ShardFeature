@@ -14,13 +14,30 @@
 #include "indri/Repository.hpp"
 #include "indri/CompressedCollection.hpp"
 #include "indri/LocalQueryServer.hpp"
+#include <tr1/unordered_map>
 
 using namespace std;
 using namespace indri::api;
+using std::tr1::unordered_map;
 
 
-void readSpamIds(const string spamFile, set<string> &spamIds){
-    spamIds.clear();
+void readExtids(const string extidFile, unordered_map<string, int> &extids){
+    extids.clear();
+    ifstream extidStream;
+    extidStream.open(extidFile.c_str());
+
+    string line;
+    while(! extidStream.eof()){
+        getline(extidStream, line);
+        if(line.empty())
+            break;
+        extids[line] = 1;
+    }
+
+    extidStream.close();
+}
+
+void filterSpams(const string spamFile, unordered_map<string, int> &extids){
     ifstream spamStream;
     spamStream.open(spamFile.c_str());
 
@@ -29,9 +46,10 @@ void readSpamIds(const string spamFile, set<string> &spamIds){
         getline(spamStream, line);
         if(line.empty())
             break;
-        spamIds.insert(line);
+        unordered_map<string, int>::iterator found = extids.find(line);
+        if(found != extids.end())
+            found->second = 0;
     }
-
     spamStream.close();
 }
 
@@ -171,9 +189,6 @@ int main(int argc, char **argv){
     std::string queryTermFile = argv[4];
     string spamFile = argv[5];
 
-    ifstream extidStream;
-    extidStream.open(extidFile.c_str());
-
     // open indri index
     QueryEnvironment IndexEnv;
     IndexEnv.addIndex (repoPath);
@@ -188,9 +203,10 @@ int main(int argc, char **argv){
     set<int> queryTerms;
     readQueryTerms(queryTerms, queryTermFile.c_str(), index, r);
 
-    // read spam ids
-    set<string> spamIds;
-    readSpamIds(spamFile, spamIds);
+    // read  extids and filter spams
+    unordered_map<string, int> extids;
+    readExtids(extidFile, extids);
+    filterSpams(spamFile, extids);
 
     // Features
     map<int, FeatVec> features;
@@ -202,16 +218,18 @@ int main(int argc, char **argv){
     int intid = 0;
 
     string extid;
-    string prevExtid = "";
     string outLine;
     int indexId = 0;
     int ndoc = 0;
-    while(!extidStream.eof()){
-        extidStream>>extid;
-
+    unordered_map<string, int>::iterator iter;
+    for(iter = extids.begin(); iter != extids.end(); iter++)
+    {
         // filter out spam
-        if (spamIds.find(extid) != spamIds.end())
+        if (iter->second == 0)
             continue;
+
+         extid = iter->first;
+
 
         extids.clear();
         extids.push_back(extid);
