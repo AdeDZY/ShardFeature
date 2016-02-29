@@ -12,7 +12,7 @@ def read_feat_file(filepath):
         t, df, sum_tf, sum_prob = line.split()
         t = t.strip()
         if '-1' in t :
-            shard_size = int(df)
+            shard_size = int(df) 
             shard_tf = int(sum_tf)
             continue
         if shard_size == 0:

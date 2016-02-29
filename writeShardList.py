@@ -20,7 +20,7 @@ def get_n_max(perc, base_dir):
 
     n_valid_shards = int(valid_file.readline())
     valid_file.close()
-    _max = math.ceil(perc * n_valid_shards)
+    _max = int(perc * n_valid_shards)
 
     return _max
 

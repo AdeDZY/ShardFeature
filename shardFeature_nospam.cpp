@@ -190,7 +190,7 @@ int main(int argc, char **argv){
 
     // read spam ids
     set<string> spamIds;
-    readSpamIds(spamFile, spamIds)
+    readSpamIds(spamFile, spamIds);
 
     // Features
     map<int, FeatVec> features;
