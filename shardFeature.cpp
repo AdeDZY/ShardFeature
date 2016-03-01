@@ -17,10 +17,10 @@
 
 using namespace std;
 using namespace indri::api;
+using std::tr1::unordered_set;
+using std::tr1::unordered_map;
 
-
-
-void readQueryTerms(set<int> &queryTerms, const char *queryTermFile, indri::index::Index * index, indri::collection::Repository & repo){
+void readQueryTerms(unordered_set<int> &queryTerms, const char *queryTermFile, indri::index::Index * index, indri::collection::Repository & repo){
 	queryTerms.clear();
 	ifstream queryStream;
 	queryStream.open(queryTermFile);
@@ -75,11 +75,11 @@ struct FeatVec{
 
 void get_document_vector(indri::index::Index *index,
                          const int docid,
-                         const set<int> &queryTerms,
-                         map<int, FeatVec> &features) {
+                         const unordered_set<int> &queryTerms,
+                         unordered_map<int, FeatVec> &features) {
 
-    map<int, int> docVec;
-    map<int, int>::iterator docVecIt;
+    unordered_map<int, int> docVec;
+    unordered_map<int, int>::iterator docVecIt;
 
     const indri::index::TermList *list = index->termList(docid);
     indri::utility::greedy_vector <int> &terms = (indri::utility::greedy_vector <int> &) list->terms();
@@ -112,7 +112,7 @@ void get_document_vector(indri::index::Index *index,
 		return;
 	}
     // update feature
-    map<int, int>::iterator it;
+    unordered_map<int, int>::iterator it;
     int termID, freq;
     for(it = docVec.begin(); it != docVec.end(); it++){
         termID = it->first;
@@ -134,14 +134,20 @@ void get_document_vector(indri::index::Index *index,
 
 }
 
-void writeFeatures(const map<int, FeatVec> &features,
+void writeFeatures(const unordered_map<int, FeatVec> &features,
                    const string outFile){
 
     ofstream outStream;
     outStream.open(outFile.c_str());
 
-    map<int, FeatVec>::const_iterator it;
-    for(it = features.begin(); it != features.end(); it++){
+    unordered_map<int, FeatVec>::const_iterator it;
+    vector<int> key_list;
+    for (it=features.begin(); it != features.end(); ++it) {
+        key_list.push_back(it->first);
+    }
+	sort(key_list.begin(), key_list.end());
+    for (vector<int>::iterator it2=key_list.begin(); it2 != key_list.end(); ++it2) {
+        it = features.find(*it2);
         outStream<<it->first;
         outStream<<" ";
         outStream<<it->second.df<<" "<<it->second.sum_tf<<" "<<it->second.sum_prob<<endl;
@@ -169,11 +175,11 @@ int main(int argc, char **argv){
     index = (*state)[0];
 
     // read query terms
-    set<int> queryTerms;
+    unordered_set<int> queryTerms;
     readQueryTerms(queryTerms, queryTermFile.c_str(), index, r);
 
     // Features
-    map<int, FeatVec> features;
+    unordered_map<int, FeatVec> features;
 	features[-1] = FeatVec();
 
 
