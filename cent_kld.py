@@ -118,7 +118,8 @@ def gen_lst_bigram(shards_features, ref_dv, ref, query, method, miu, lamb, shard
             res.append((s, shard))
         if method == "ef":
             s = score_ef(qbigrams, feat)
-            res.append((s, shard))
+            if s > 0:
+                res.append((s, shard))
 
     sorted_res = sorted(res, reverse=True)
     return sorted_res
