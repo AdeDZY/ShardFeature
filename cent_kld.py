@@ -53,6 +53,16 @@ def score_kld(qterms, cent, ref, miu):
     return sum(s)
 
 
+def score_ef(qterms, feat):
+    s = 0
+    for item in qterms:
+        token, p = item.split('\t')
+        p = float(p)
+        if token in feat:
+            s += np.log(float(feat[token][1]))
+    return s
+
+
 def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, shards_size):
     if lamb < 0:
         lamb = 25205000.0 / (len(shards_features) * 0.6) * 100 
@@ -107,6 +117,9 @@ def gen_lst_bigram(shards_features, ref_dv, ref, query, method, miu, lamb, shard
         if method == "indri":
             s = score_indri(qbigrams, feat, ref_dv, miu, lamb, shards_tf[shard], shards_size[shard])
             res.append((s, shard))
+        if method == "ef":
+            s = score_ef(qbigrams, feat)
+            res.append((s, shard))
 
     sorted_res = sorted(res, reverse=True)
     return sorted_res
@@ -118,7 +131,7 @@ def merge_res(res1, res2, w1, w2):
         return res2
     if not res2:
         return res1
-	
+
     min1 = res1[-1][0] * 1.5
     min2 = res2[-1][0] * 1.5
     for s, shard in res1:
