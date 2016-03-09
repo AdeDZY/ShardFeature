@@ -14,6 +14,8 @@
 #include "indri/Repository.hpp"
 #include "indri/CompressedCollection.hpp"
 #include "indri/LocalQueryServer.hpp"
+#include <tr1/unordered_map>
+#include <tr1/unordered_set>
 
 using namespace std;
 using namespace indri::api;

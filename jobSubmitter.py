@@ -35,7 +35,7 @@ for line in open(base_dir + "/shards"):
         out = os.popen(query)
         nRunning = int(out.readline())
         print nRunning
-        if nRunning < 15:
+        if nRunning < 25:
             break
         time.sleep(args.sleep)
     cmd = "condor_submit " + job_path
