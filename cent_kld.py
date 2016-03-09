@@ -56,8 +56,7 @@ def score_kld(qterms, cent, ref, miu):
 def score_ef(qterms, feat):
     s = 0
     for item in qterms:
-        token, p = item.split('\t')
-        p = float(p)
+        token = item 
         if token in feat:
             s += np.log(float(feat[token][1]))
     return s
