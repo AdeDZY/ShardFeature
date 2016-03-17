@@ -69,10 +69,30 @@ def score_ef(qterms, feat):
     return s
 
 
+def score_ftr(qterms, ctf_rankings, shard):
+    res = 0
+    for token in qterms:
+        res += 1.0/ctf_rankings[token][shard]
+    return res
+
+
 def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, shards_size):
     if lamb < 0:
         lamb = 25205000.0 / (len(shards_features) * 0.6) * 100 
     qterms = query.split()
+
+    # for ftr ranking
+    ctf_rankings = {}
+    for token in qterms:
+        # rank shards by this token's ctf
+        tmp = [(shards_features[s][token][1], s) for s in shards_features]
+        tmp = sorted(tmp, reverse=True)
+        ctf_rankings[token] = {}
+        i = 1
+        for ctf, s in tmp:
+            ctf_rankings[token][s] = i
+            if ctf > 0:
+                i += 1
 
     res = []
     for shard in shards_features:
@@ -89,6 +109,9 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
                 res.append((s, shard))
         if method == "indri":
             s = score_indri(qterms, feat, ref_dv, miu, lamb, shards_tf[shard], shards_size[shard])
+            res.append((s, shard))
+        if method == "ftr":
+            s = score_ftr(qterms, ctf_rankings, shard)
             res.append((s, shard))
 
     sorted_res = sorted(res, reverse=True)
