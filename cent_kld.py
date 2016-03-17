@@ -56,7 +56,7 @@ def score_kld(qterms, cent, ref, miu):
 def score_ef(qterms, feat):
     s = 0
     a = {}
-    for line in open("gov2.bigrams"):
+    for line in open("cwb.bigrams"):
         tid, freq = line.split()
         if int(freq) < 50:
             a[tid] = 1
