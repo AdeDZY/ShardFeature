@@ -55,9 +55,16 @@ def score_kld(qterms, cent, ref, miu):
 
 def score_ef(qterms, feat):
     s = 0
+    a = {}
+    for line in open("gov2.bigrams"):
+        tid, freq = line.split()
+        if int(freq) < 50:
+            a[tid] = 1
     for item in qterms:
         token = item 
-        if token in feat:
+        if token in feat: 
+            if token in a:
+                continue
             s += np.log(float(feat[token][1]))
     return s
 
