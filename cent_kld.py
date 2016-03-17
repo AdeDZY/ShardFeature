@@ -85,7 +85,7 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
     ctf_rankings = {}
     for token in qterms:
         # rank shards by this token's ctf
-        tmp = [(shards_features[s][token][1], s) for s in shards_features]
+        tmp = [(shards_features[s].get(token, (0, 0, 0))[1], s) for s in shards_features]
         tmp = sorted(tmp, reverse=True)
         ctf_rankings[token] = {}
         i = 1
