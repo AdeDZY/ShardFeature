@@ -147,12 +147,12 @@ void get_document_vector(indri::index::Index *index,
             termID = it->first;
             freq = it->second;
             if(featureLists[fdx].find(termID) == featureLists[fdx].end())
-                featureLists[fdx][termID] = FeatVec(1, freq/double(docLen), freq);
+                featureLists[fdx][termID] = FeatVec(1, freq/double(docLens[fdx]), freq);
             else
-                featureLists[fdx][termID].updateFeature(freq, docLen);
+                featureLists[fdx][termID].updateFeature(freq, docLens[fdx]);
         }
         // to get shard size and total term freq in shards
-        featureLists[fdx][-1].updateFeature(docLen, docLen);
+        featureLists[fdx][-1].updateFeature(docLens[fdx], docLens[fdx]);
     }
 
     // Finish processing this doc
@@ -209,7 +209,7 @@ int main(int argc, char **argv){
     readQueryTerms(queryTerms, queryTermFile.c_str(), index, r);
 
     // Features of different field
-    nFields = 3;
+    int nFields = 3;
     unordered_map<int, FeatVec> featureLists[nFields];
 
     for(int i = 0; i < nFields; i++){
