@@ -87,8 +87,6 @@ void get_document_vector(indri::index::Index *index,
         fieldIDs[i] = index->field(fields[i]);
     }
 
-
-    int fieldID = index->field(fieldName)
     unordered_map<int, int> docVecs[3];
     unordered_map<int, int>::iterator docVecIt;
 
@@ -99,6 +97,7 @@ void get_document_vector(indri::index::Index *index,
 
     // the whole documents
     int docLens[3] = {0, 0, 0};
+    int fdx;
     while(fIter != fieldVec.end())
     {
         // find the field
@@ -139,7 +138,7 @@ void get_document_vector(indri::index::Index *index,
     }
 
     // update feature
-    for(int fdx = 0; fdx < nFields; fdx++){
+    for(fdx = 0; fdx < nFields; fdx++){
         if(docLens[fdx] <= 0)
             continue;
         unordered_map<int, int>::iterator it;
