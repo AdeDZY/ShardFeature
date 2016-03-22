@@ -170,12 +170,12 @@ void writeFeatures(const unordered_map<int, FeatVec> featureLists[],
     for(int fdx = 0; fdx < nFields; fdx++){
         unordered_map<int, FeatVec>::const_iterator it;
         vector<int> key_list;
-        for (it=features.begin(); it != features.end(); ++it) {
+        for (it=featureLists[fdx].begin(); it != featureLists[fdx].end(); ++it) {
             key_list.push_back(it->first);
         }
 	    sort(key_list.begin(), key_list.end());
         for (vector<int>::iterator it2=key_list.begin(); it2 != key_list.end(); ++it2) {
-            it = features.find(*it2);
+            it = featureLists[fdx].find(*it2);
             outStream<<it->first;
             outStream<<" ";
             outStream<<it->second.df<<" "<<it->second.sum_tf<<" "<<it->second.sum_prob<<endl;
