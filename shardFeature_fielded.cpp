@@ -101,7 +101,7 @@ void get_document_vector(indri::index::Index *index,
     while(fIter != fieldVec.end())
     {
         // find the field
-        for(fdx = 0; fdx < nFields; fdx+=){
+        for(fdx = 0; fdx < nFields; fdx++){
             if ((*fIter).id == fieldIDs[fdx]){
                break;
             }

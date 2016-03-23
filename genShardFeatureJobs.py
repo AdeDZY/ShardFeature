@@ -18,6 +18,7 @@ parser.add_argument("shardmaps_dir")
 parser.add_argument("repo_dir")
 parser.add_argument("query_term_file")
 parser.add_argument("--bigram", "-b", action="store_true")
+parser.add_argument("--fielded", action="store_true")
 parser.add_argument("--nospam", "-s", action="store_true")
 parser.add_argument("--spamfile", "-f", type=str, default="/bos/usr0/zhuyund/fedsearch/cw09b.spam")
 args = parser.parse_args()
@@ -63,6 +64,12 @@ for shardmap in shardmaps:
         arguments = "{0} {1} {2} {3}".format(args.repo_dir,
                                          args.shardmaps_dir + '/' + shardmap,
                                          feat_dir + '/' + shardmap + '.feat_bigram',
+                                         args.query_term_file)
+    if args.fielded:
+        execuatable = "./shardFeature_fielded"
+        arguments = "{0} {1} {2} {3}".format(args.repo_dir,
+                                         args.shardmaps_dir + '/' + shardmap,
+                                         feat_dir + '/' + shardmap + '.feat_fielded',
                                          args.query_term_file)
     log = "/tmp/zhuyund_kmeans.log"
     out = base_dir + "/out"
