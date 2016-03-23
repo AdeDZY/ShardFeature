@@ -9,7 +9,7 @@ if __name__ == '__main__':
     parser.add_argument("partition_name")
     args = parser.parse_args()
 
-    base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name + "/features/"
+    base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name 
     shard_file = base_dir + "/shards"
     shards = []
     for line in open(shard_file):
@@ -24,8 +24,9 @@ if __name__ == '__main__':
                 if line.startswith('-1'):
                     fout.close()
                     fdx += 1
-                    fout = open("{0}/features/{1}.feat_{2}".format(base_dir, shard, fields[fdx]))
-                fout.write(line)
+                    fout = open("{0}/features/{1}.feat_{2}".format(base_dir, shard, fields[fdx]) ,'w')
+                if line.strip():
+                    fout.write(line)
         fout.close()
 
 
