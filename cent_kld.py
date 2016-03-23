@@ -113,6 +113,10 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
         if method == "ftr":
             s = score_ftr(qterms, ctf_rankings, shard)
             res.append((s, shard))
+        if method == "ef":
+            s = score_ef(qterms, feat)
+            if s > 0:
+                res.append((s, shard))
 
     sorted_res = sorted(res, reverse=True)
     return sorted_res

@@ -58,9 +58,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("partition_name")
     parser.add_argument("int_query_file", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
-    parser.add_argument("--method", "-m", default="lm")
+    parser.add_argument("--method", "-m", default="lm", choices=["lm", "ef", "kld"])
     parser.add_argument("--miu", "-i", type=float, default=0.0001)
     parser.add_argument("--lamb", "-l", type=float, default=500)
+    parser.add_argument("--field", "-f", type=str, default="", choices=["title", "url", "inlink"])
     parser.add_argument("--type", "-t", type=str, default="unigram", help="unigram(default), bigram")
 
     args = parser.parse_args()
@@ -89,8 +90,13 @@ def main():
 
     shards_features_bigram = {}
     shards_tf_bigram = {}
+
+    field = ""
+    if args.field:
+        field = '_' + args.field
+
     for shard in shards:
-        feat_file_path = "{0}/features/{1}.feat".format(base_dir, shard)
+        feat_file_path = "{0}/features/{1}.feat{2}".format(base_dir, shard, field)
         if not os.path.exists(feat_file_path):
             shards_size[shard] = 0
             shards_tf[shard] = 0
@@ -134,7 +140,7 @@ def main():
 
             res_merged = cent_kld.merge_res(res, res_bigram, 0.5, 0.5)
 
-        outfile_path = "{0}/{1}_{2}.rank".format(res_dir, query_id, args.method)
+        outfile_path = "{0}/{1}_{2}{3}.rank".format(res_dir, query_id, args.method, field)
         outfile = open(outfile_path, 'w')
         for score, shard in res:
             outfile.write('{0} {1}\n'.format(shard, score))
