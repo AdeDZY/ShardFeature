@@ -58,7 +58,7 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("partition_name")
     parser.add_argument("int_query_file", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
-    parser.add_argument("--method", "-m", default="lm", choices=["lm", "ef", "kld"])
+    parser.add_argument("--method", "-m", default="lm", choices=["lm", "ef", "kld", "stats"])
     parser.add_argument("--miu", "-i", type=float, default=0.0001)
     parser.add_argument("--lamb", "-l", type=float, default=500)
     parser.add_argument("--field", "-f", type=str, default="", choices=["title", "url", "inlink"])
