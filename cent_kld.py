@@ -81,24 +81,24 @@ def stats(qterms, feat, dfs):
     tokens_dfs = []
     has_all_tokens = True
     for token in qterms:
-        p = float(p)
-        tokens.append(token)
-        tokens_dfs.append(dfs[token])
         if token not in feat:
             has_all_tokens = False
+            continue
+        tokens.append(token)
+        tokens_dfs.append(dfs[token])
 
     s1, s2, s3, s4 = 0, 0, 0, 0
     s5, s6, s7, s8 = 0, 0, 0, 0
     if tokens:
         s1 = max([feat[token][1] for token in tokens])
-        s3 = max([feat[token][1] * np.log(50220423/tokens_dfs[i]) for i, token in enumerate(tokens)])
-        s5 = max([feat[token][2] for token in tokens])
-        s7 = max([feat[token][2] * np.log(50220423/tokens_dfs[i]) for i, token in enumerate(tokens)])
+        s3 = max([feat[token][1] * np.log(50220423.0/tokens_dfs[i]) for i, token in enumerate(tokens)])
+        s5 = max([feat[token][0] for token in tokens])
+        s7 = max([feat[token][0] * np.log(50220423.0/tokens_dfs[i]) for i, token in enumerate(tokens)])
     if has_all_tokens:
         s2 = min([feat[token][1] for token in tokens])
-        s4 = min([feat[token][1] * np.log(50220423/tokens_dfs[i]) for i, token in enumerate(tokens)])
-        s6 = min([feat[token][2] for token in tokens])
-        s8 = min([feat[token][2] * np.log(50220423/tokens_dfs[i]) for i, token in enumerate(tokens)])
+        s4 = min([feat[token][1] * np.log(50220423.0/tokens_dfs[i]) for i, token in enumerate(tokens)])
+        s6 = min([feat[token][0] for token in tokens])
+        s8 = min([feat[token][0] * np.log(50220423.0/tokens_dfs[i]) for i, token in enumerate(tokens)])
     return s1, s2, s3, s4, s5, s6, s7, s8
 
 
@@ -108,7 +108,7 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
     qterms = query.split()
 
     # read dfs
-    dfs = []
+    dfs = {} 
     for line in open("dfs.cwb"):
         token, df = line.split()
         df = int(df)
@@ -152,7 +152,7 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
                 res.append((s, shard))
         if method == "stats":
             ss = stats(qterms, feat, dfs)
-            res.append(" ".join(ss), shard)
+            res.append((" ".join([str(s) for s in ss]), shard))
 
     sorted_res = sorted(res, reverse=True)
     return sorted_res
