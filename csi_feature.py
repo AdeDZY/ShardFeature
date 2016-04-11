@@ -24,6 +24,8 @@ if __name__ == '__main__':
     if not os.path.exists(base_dir):
         os.makedirs(base_dir)
     feat_dir = join(base_dir, "csi_features")
+    if not os.path.exists(feat_dir):
+        os.makedirs(feat_dir)
 
     if args.dataset == "cwb":
         queries = range(1, 201)
@@ -33,7 +35,7 @@ if __name__ == '__main__':
     # for each query, read in its csi filtered file
     out_file = open(join(feat_dir, "all.feat"), 'w')
     for q in queries:
-        filtered_file_path = join(args.csi_idr, "{0}.filtered".format(q))
+        filtered_file_path = join(args.csi_dir, "{0}.filtered".format(q))
         filtered = []
         if not os.path.exists(filtered_file_path):
             continue
@@ -49,19 +51,32 @@ if __name__ == '__main__':
         outputs.append(str(r))
 
         # entropy and rel_entropy
+        for cutoff in range(10, 300, 10):
+            tmp = [0 for i in range(args.n_shard)]
+            for shardid, r in filtered:
+                if r < cutoff:
+                    tmp[shardid - 1] += 1.0/len(filtered)
+            h = 0
+            rel_h = 0
+            for i in range(args.n_shard):
+                if tmp[i] > 0:
+                    h -= tmp[i] * log2(tmp[i])
+                    rel_h += tmp[i] * log(tmp[i] * len(filtered))
+            outputs.append(str(h))
+            outputs.append(str(rel_h))
+        
         tmp = [0 for i in range(args.n_shard)]
-        for shardid, r in tmp:
-            tmp[shardid - 1] += 1.0/r
+        for shardid, r in filtered:
+            if r < cutoff:
+                tmp[shardid - 1] += 1.0/args.n_shard
         h = 0
         rel_h = 0
         for i in range(args.n_shard):
             if tmp[i] > 0:
-                h -= tmp[i] * log2(tmp[i])
-                rel_h += tmp[i] * log(tmp[i] * r)
+                 h -= tmp[i] * log2(tmp[i])
+                 rel_h += tmp[i] * log(tmp[i] * args.n_shard)
         outputs.append(str(h))
         outputs.append(str(rel_h))
 
         out_file.write('\t'.join(outputs))
         out_file.write('\n')
-
-
