@@ -38,28 +38,36 @@ if not os.path.exists(feat_dir):
     os.makedirs(feat_dir)
 
 
+# preprocssing csi sample file
+local_sample_file = base_dir+"/csi_sample"
+with open(args.sample_file_path) as f, open(local_sample_file, "w") as fout:
+    for line in f:
+        extid, shard = line.split(',')
+        fout.write(extid)
+        fout.write('\n')
+
 execuatable = "./shardFeature"
 arguments = "{0} {1} {2} {3}".format(args.repo_dir,
-                                     args.sample_file_path,
+                                     local_sample_file,
                                      feat_dir + '/csi.feat',
                                      args.query_term_file)
 if args.nospam:
     execuatable = "./shardFeature_nospam"
     arguments = "{0} {1} {2} {3} {4}".format(args.repo_dir,
-                                             args.sample_file_path,
+                                             local_sample_file,
                                              feat_dir + '/csi.feat_nospam',
                                              args.query_term_file,
                                              args.spamfile)
 if args.bigram:
     execuatable = "./shardFeature_bigram"
     arguments = "{0} {1} {2} {3}".format(args.repo_dir,
-                                         args.sample_file_path,
+                                         local_sample_file,
                                          feat_dir + '/csi.feat_bigram',
                                          args.query_term_file)
 if args.fielded:
     execuatable = "./shardFeature_fielded"
     arguments = "{0} {1} {2} {3}".format(args.repo_dir,
-                                         args.sample_file_path,
+                                         local_sample_file,
                                          feat_dir + '/csi.feat_fielded',
                                          args.query_term_file)
 log = "/tmp/zhuyund_kmeans.log"
