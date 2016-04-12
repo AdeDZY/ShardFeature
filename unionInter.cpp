@@ -69,8 +69,8 @@ void readQueries(unordered_set<int> &queryTerms,
 
 void get_document_vector(indri::index::Index *index,
                          const int docid,
-                         unordered_map<int, vector<int> > &queryTerms,
-                         vector<unordered_map<int, bool> > &queries,
+                         unordered_set<int> &queryTerms,
+                         vector<vector<int> > &queries,
                          vector<int> &res_inter,
                          vector<int> &res_union) {
 
@@ -96,6 +96,12 @@ void get_document_vector(indri::index::Index *index,
         docVec[terms[t]] = 1;
     }
 
+	if(docVec.size() == 0){
+    	delete list;
+    	list = NULL;
+    	terms.clear();
+		return;
+	}
     // update union and intersection
     for (int q = 0; q < queries.size(); q++)
     {
@@ -104,7 +110,7 @@ void get_document_vector(indri::index::Index *index,
         for (int i = 0; i < queries[q].size(); i++)
         {
             termID = queries[q][i];
-            if (docVec.find(termID) != docVec.end())
+            if (docVec.find(termID) == docVec.end())
                 has_all = false;
             else
                 has_one = true;
@@ -160,15 +166,11 @@ int main(int argc, char **argv){
     // read queries
     unordered_set<int> queryTerms;
     vector<vector<int> > queries;
-    readQueryTerms(queryTerms, queries, queryFile.c_str(), index, r);
+    readQueries(queryTerms, queries, queryFile.c_str(), index, r);
 
     // results
     vector<int> res_inter(queries.size());
     vector<int> res_union(queries.size());
-
-    vector <string> extids;
-    vector <int> intids;
-    int intid = 0;
 
     vector <string> extids;
     vector <int> intids;
