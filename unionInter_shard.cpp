@@ -71,8 +71,8 @@ void get_document_vector(indri::index::Index *index,
                          const int docid,
                          unordered_set<int> &queryTerms,
                          vector<vector<int> > &queries,
-                         vector<int, vector<int> > &res_inter,
-                         vector<int, vector<int> > &res_union,
+                         vector<vector<int> > &res_inter,
+                         vector<vector<int> > &res_union,
                          const int shardid) {
 
     unordered_map<int, int> docVec;
@@ -129,19 +129,19 @@ void get_document_vector(indri::index::Index *index,
     terms.clear();
 }
 
-void writeResults(const vector<int> &res_inter,
-                  const vector<int> &res_union,
+void writeResults(const vector<vector<int> > &res_inter,
+                  const vector<vector<int> > &res_union,
                   const string outFile,
                   const int nShards){
 
     ofstream outStream;
     outStream.open(outFile.c_str());
 
-    for(int q = 0; q < res_union.size(); q++){
-        outStream<<q;
-        outStream<<"\t";
+    for(int q = 0; q < res_union[0].size(); q++){
         for(int s = 0; s < nShards; s++){
-            outStream<<res_inter[s][q]<<" "<<res_union[s][q]<<"\t";
+        	outStream<<q + 1;
+        	outStream<<" "<<s + 1<<" ";
+            outStream<<res_inter[s][q]<<" "<<res_union[s][q]<<endl;
         }
     }
     outStream.close();
@@ -174,12 +174,12 @@ int main(int argc, char **argv){
     readQueries(queryTerms, queries, queryFile.c_str(), index, r);
 
     // results
-    vector<int, vector<int>> res_inter(nShards);
-    vector<int, vector<int>> res_union(nShards);
+    vector<vector<int> > res_inter(nShards);
+    vector<vector<int> > res_union(nShards);
     for(int s = 0; s < nShards; s++)
     {
-        res_inter[s] = vector(queries.size());
-        res_union[s] = vector(queries.size());
+        res_inter[s].resize(queries.size());
+        res_union[s].resize(queries.size());
     }
 
     vector <string> extids;
@@ -196,7 +196,7 @@ int main(int argc, char **argv){
         extidStream>>extid;
         extidStream>>shardid;
         extids.push_back(extid);
-        shardids.push_back(atoi(shardid.c_str()));
+        shardids.push_back(atoi(shardid.c_str()) - 1);
     }
     extidStream.close();
 
