@@ -19,7 +19,7 @@ if __name__ == '__main__':
             nshard = s
             break
         union[s] = []
-        with open(basedir + "/features/{0}.feat".format(s + 1)) as f:
+        with open(basedir + "/inters/{0}.inter".format(s + 1)) as f:
             for line in f:
                 qid, i, u = line.split()
                 qid = int(qid)
