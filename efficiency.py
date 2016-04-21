@@ -1,3 +1,5 @@
+#!/opt/python27/bin/python
+
 import numpy as np
 import os
 import argparse
@@ -6,7 +8,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("partition_name")
     parser.add_argument("shardlist_file")
-    parser.add_argument("--dataset", "-d", choice=["cwb", "gov2"], default="cwb")
+    parser.add_argument("--dataset", "-d", choices=["cwb", "gov2"], default="cwb")
     args = parser.parse_args()
 
     basedir = "output/{0}/".format(args.partition_name)
@@ -18,7 +20,7 @@ if __name__ == '__main__':
         if not os.path.exists(basedir + "/inters/{0}.inter".format(s + 1)):
             nshard = s
             break
-        union[s] = []
+        union[s] = {} 
         with open(basedir + "/inters/{0}.inter".format(s + 1)) as f:
             for line in f:
                 qid, i, u = line.split()
@@ -50,12 +52,22 @@ if __name__ == '__main__':
     # Clat: max over shard
     cres = 0
     clat = 0
-    for q in shardlist:
-        tmp = [union[s][q] for s in shardlist[q]]
+    cres_ext = 0
+    if args.dataset == "cwb":
+        n_queries = 200
+    else:
+        n_queries = 149
+    for q in range(n_queries):
+        tmp = []
+        if q in shardlist:
+            tmp = [union[s][q] for s in shardlist[q] if s in union]
+        cres_ext += sum([union[s][q] for s in range(nshard)])
+
+        tmp.append(0)
         cres += sum(tmp)
         clat += max(tmp)
 
-    print args.partition_name, float(cres)/len(shardlist), float(clat)/len(shardlist)
+    print args.partition_name, float(cres_ext)/n_queries, float(cres)/n_queries, float(clat)/n_queries
 
 
 
