@@ -15,7 +15,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("partition_name")
 parser.add_argument("sample_file_path")
 parser.add_argument("repo_dir")
-parser.add_argument("query_term_file")
+parser.add_argument("query_file")
 args = parser.parse_args()
 
 base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
