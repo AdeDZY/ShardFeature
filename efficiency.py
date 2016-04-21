@@ -9,6 +9,7 @@ if __name__ == '__main__':
     parser.add_argument("partition_name")
     parser.add_argument("shardlist_file")
     parser.add_argument("--dataset", "-d", choices=["cwb", "gov2"], default="cwb")
+    parser.add_argument("--query", "-q", help="print result for each query")
     args = parser.parse_args()
 
     basedir = "output/{0}/".format(args.partition_name)
@@ -61,11 +62,16 @@ if __name__ == '__main__':
         tmp = []
         if q in shardlist:
             tmp = [union[s][q] for s in shardlist[q] if s in union]
-        cres_ext += sum([union[s][q] for s in range(nshard)])
+        tmp_ext = sum([union[s][q] for s in range(nshard)])
+        cres_ext += tmp_ext
 
         tmp.append(0)
-        cres += sum(tmp)
-        clat += max(tmp)
+        tmp_res = sum(tmp)
+        tmp_lat = map(tmp)
+        if args.query:
+            print tmp_ext, tmp_res, tmp_lat
+        cres += tmp_res
+        clat += tmp_lat
 
     print args.partition_name, float(cres_ext)/n_queries, float(cres)/n_queries, float(clat)/n_queries
 
