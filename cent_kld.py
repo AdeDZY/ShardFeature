@@ -109,7 +109,8 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
 
     # read dfs
     dfs = {} 
-    for line in open("dfs.cwb"):
+    #for line in open("dfs.cwb"):
+    for line in open("dfs.mqt"):
         token, df = line.split()
         df = int(df)
         dfs[token] = df
