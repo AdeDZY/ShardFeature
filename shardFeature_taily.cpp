@@ -60,19 +60,22 @@ struct FeatVec{
     unsigned sum_tf;
     double sum_logprob;
     double sum_sqr_logprob;
+    double min_logprob;
     FeatVec(){
         df = 0;
         sum_prob = 0;
         sum_tf = 0;
         sum_logprob = 0;
         sum_sqr_logprob = 0;
+        min_logprob = 333333333;
     }
-    FeatVec(int _df, double _sum_prob, unsigned _sum_tf, double _sum_logprob, double _sum_sqr_logprob){
+    FeatVec(int _df, double _sum_prob, unsigned _sum_tf, double _sum_logprob, double _sum_sqr_logprob, double _min_logprob){
         df = _df;
         sum_prob = _sum_prob;
         sum_tf = _sum_tf;
         sum_logprob = _sum_logprob;
         sum_sqr_logprob = _sum_sqr_logprob;
+        min_logprob = _min_logprob;
     }
     void updateFeature(int freq, int docLen){
         df += 1;
@@ -81,6 +84,8 @@ struct FeatVec{
         sum_tf += freq;
         sum_logprob += log(p);
         sum_sqr_logprob += log(p) * log(p);
+        if(min_logprob > log(p))
+			min_logprob = log(p);
     }
 };
 
@@ -129,7 +134,7 @@ void get_document_vector(indri::index::Index *index,
         termID = it->first;
         freq = it->second;
         if(features.find(termID) == features.end())
-            features[termID] = FeatVec(1, freq/double(docLen), freq, log(freq/double(docLen)), log(freq/double(docLen)) * log(freq/double(docLen)));
+            features[termID] = FeatVec(1, freq/double(docLen), freq, log(freq/double(docLen)), log(freq/double(docLen)) * log(freq/double(docLen)), log(freq/double(docLen)));
         else
             features[termID].updateFeature(freq, docLen);
     }
@@ -161,7 +166,7 @@ void writeFeatures(const unordered_map<int, FeatVec> &features,
         it = features.find(*it2);
         outStream<<it->first;
         outStream<<" ";
-        outStream<<it->second.df<<" "<<it->second.sum_tf<<" "<<it->second.sum_prob<<" "<<it->second.sum_logprob<<" "<<" "<<it->second.sum_sqr_logprob<<endl;
+        outStream<<it->second.df<<" "<<it->second.sum_tf<<" "<<it->second.sum_prob<<" "<<it->second.sum_logprob<<" "<<" "<<it->second.sum_sqr_logprob<<" "<<it->second.min_logprob<<endl;
     }
     outStream.close();
 }
