@@ -257,7 +257,7 @@ def main():
 
     # compute the features for the whole collections, indexed as shard 0
     shard_term_features[0] = {}
-    for feats in shard_term_features.values():
+    for feats in shard_term_features:
         for t in feats:
             df, e, sqr_e, var = feats[t]
             if t not in shard_term_features[0]:
@@ -272,10 +272,10 @@ def main():
     shard_features[0].size = sum([s.size for s in shard_features[1:]])
 
     for query_id, query in queries:
-        qterms = [t.strip() for t in queries.split()]
+        qterms = [t.strip() for t in query.split()]
         res = rank_taily(shard_term_features, qterms, args.n_c, shard_features)
 
-        outfile_path = "{0}/{1}_{2}{3}.rank_taily".format(res_dir, query_id, args.method)
+        outfile_path = "{0}/{1}.rank_taily".format(res_dir, query_id)
         outfile = open(outfile_path, 'w')
         for score, shard in res:
             outfile.write('{0} {1}\n'.format(shard, score))
