@@ -263,8 +263,8 @@ def main():
     # parser.add_argument("--v", "-v", type=float, default=50)
     args = parser.parse_args()
 
-    # base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
-    base_dir = "./data/"
+    base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
+    #base_dir = "./data/"
     queries = []
     for query in args.int_query_file:
         query = query.strip()
