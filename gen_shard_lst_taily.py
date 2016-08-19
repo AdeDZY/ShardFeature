@@ -260,11 +260,11 @@ def main():
     parser.add_argument("partition_name")
     parser.add_argument("int_query_file", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
     parser.add_argument("--n_c", "-n", type=float, default=400)
+    parser.add_argument("--cutoff", "-c", type=int, default=8)
     # parser.add_argument("--v", "-v", type=float, default=50)
     args = parser.parse_args()
 
-    # base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
-    base_dir = "./data/"
+    base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
     queries = []
     for query in args.int_query_file:
         query = query.strip()
@@ -309,6 +309,8 @@ def main():
         shard_term_features[0][t].var = shard_term_features[0][t].sqr_e - shard_term_features[0][t].e ** 2
     shard_features[0].size = sum([s.size for s in shard_features[1:]])
 
+    outfile_path = base_dir + "all.shardlist_taily".format(res_dir, query_id)
+
     for query_id, query in queries:
         qterms = [t.strip() for t in query.split() if t.strip() != '0']
         for s in range(n_shards + 1):
@@ -316,11 +318,10 @@ def main():
 
         res = rank_taily(shard_term_features, qterms, args.n_c, shard_features)
 
-        outfile_path = "{0}/{1}.rank_taily".format(res_dir, query_id)
         outfile = open(outfile_path, 'w')
-        for score, shard in res:
+        for score, shard in res[0:args.cutoff]:
             outfile.write('{0} {1}\n'.format(shard, score))
-        outfile.close()
+
 
 if __name__ == '__main__':
     main()
