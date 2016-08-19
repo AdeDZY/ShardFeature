@@ -23,6 +23,14 @@ class ShardFeat:
         self.k = 0      # gamma shape parameter
         self.theta = 0  # gamma scale parameter
 
+    def clear(self):
+        self.e = 0      # expectation of the query's log likelihood in the shard
+        self.var_e = 0
+        self.any = 0    # eq10
+        self.all = 0    # eq10
+        self.k = 0      # gamma shape parameter
+        self.theta = 0  # gamma scale parameter = 0
+
 
 def read_feat_file(filepath):
     """
@@ -49,6 +57,9 @@ def read_feat_file(filepath):
         feat.e = sum_logprob / df
         feat.sqr_e = sum_sqr_logprob / df
         feat.var = feat.sqr_e - feat.e**2
+        if df == 1 or abs(feat.var) < 0.001:
+            feat.var = 0
+        assert (feat.var >= 0), "{0} {1} {2} {3}".format(feat.e, feat.sqr_e, feat.df, feat.var)
         feat.min = min_logprob
         term2feat[t] = feat
     return term2feat, shard_size
@@ -107,9 +118,10 @@ def get_shift(qterms, shard_term_features):
     :return: float
     """
     shift = 0
+    n_shards = len(shard_term_features) - 1
     for t in qterms:
         mint = float("inf")
-        for s in shard_term_features:
+        for s in range(1, n_shards + 1):
             if t in shard_term_features[s]:
                 if mint > shard_term_features[s][t].min:
                     mint = shard_term_features[s][t].min
@@ -127,11 +139,12 @@ def get_shard_e(shard, shard_term_features, qterms, shift):
     :param shift: float, the shift value
     :return: float
     """
-    e = 0
+    e = - shift
     for t in qterms:
         if t in shard_term_features[shard]:
             e += shard_term_features[shard][t].e
-    return e + shift
+    assert e >= 0, "{0}".format(shard)
+    return e
 
 
 def get_shard_var(shard, shard_term_features, qterms):
@@ -146,6 +159,7 @@ def get_shard_var(shard, shard_term_features, qterms):
     for t in qterms:
         if t in shard_term_features[shard]:
             var += shard_term_features[shard][t].var
+    assert (var >= 0)
     return var
 
 
@@ -159,7 +173,7 @@ def prepare_shard_features(shard_term_features, qterms, shard_features):
     """
     # compute shift
     shift = get_shift(qterms, shard_term_features)
-    n_shards = len(shard_term_features)
+    n_shards = len(shard_term_features) - 1
 
     # define k and theta
     f_k = lambda e, var: e ** 2 / var
@@ -168,11 +182,17 @@ def prepare_shard_features(shard_term_features, qterms, shard_features):
     # compute any, all, expectation, var, k and theta
     for s in range(n_shards + 1):
         shard_features[s].any = get_any(s, qterms, shard_term_features, shard_features[s].size)
+        if shard_features[s].any == 0:
+            continue
         shard_features[s].all = get_all(shard_features[s].any, s, shard_term_features, qterms)
         shard_features[s].e = get_shard_e(s, shard_term_features, qterms, shift)
-        shard_term_features[s].var = get_shard_var(s, shard_term_features, qterms)
-        shard_term_features[s].k = f_k(shard_features[s].e, shard_term_features[s].var)
-        shard_term_features[s].theta = f_theta(shard_features[s].e, shard_term_features[s].var)
+        shard_features[s].var = get_shard_var(s, shard_term_features, qterms)
+        if shard_features[s].var == 0:
+            shard_features[s].k = -1
+            shard_features[s].theta = -1
+        else:
+            shard_features[s].k = f_k(shard_features[s].e, shard_features[s].var)
+            shard_features[s].theta = f_theta(shard_features[s].e, shard_features[s].var)
 
 
 def rank_taily(shard_term_features, qterms, n_c, shard_features):
@@ -190,6 +210,10 @@ def rank_taily(shard_term_features, qterms, n_c, shard_features):
 
     # compute s_c
     p_c = n_c/shard_features[0].all
+
+    # if n_c > all_c, set p_c to be near 1
+    if p_c > 1:
+        p_c = 0.99999999
     s_c = gamma.ppf(p_c, shard_features[0].k, scale=shard_features[0].theta)
 
     # compute pi and ni
@@ -201,12 +225,26 @@ def rank_taily(shard_term_features, qterms, n_c, shard_features):
 
     # compute ni for each shard
     for s in range(1, n_shards + 1):
+
+        # none of the documents contain at least one query term, n_i = 0
+        if shard_features[s].any <= 0:
+            taily_scores.append(0)
+            continue
+
+        # var == 0
+        if shard_features[s].theta < 0:
+            taily_scores.append(1)
+            normalizer += 1
+            continue
+
         # eq9, the cdf(survival function)
         pi = gamma.sf(s_c, shard_features[s].k, scale=shard_features[s].theta)
-        # compute normalizer
-        normalizer += pi * shard_features[s].all
+
         # eq12, without normalziation
         ni = shard_features[s].all * pi
+
+        # compute normalizer
+        normalizer += ni
         taily_scores.append(ni)
 
     # normalize
@@ -222,11 +260,11 @@ def main():
     parser.add_argument("partition_name")
     parser.add_argument("int_query_file", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
     parser.add_argument("--n_c", "-n", type=float, default=400)
-    #parser.add_argument("--v", "-v", type=float, default=50)
+    # parser.add_argument("--v", "-v", type=float, default=50)
     args = parser.parse_args()
 
-    base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
-
+    # base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
+    base_dir = "./data/"
     queries = []
     for query in args.int_query_file:
         query = query.strip()
@@ -259,12 +297,12 @@ def main():
     shard_term_features[0] = {}
     for feats in shard_term_features:
         for t in feats:
-            df, e, sqr_e, var = feats[t]
+            feat = feats[t]
             if t not in shard_term_features[0]:
                 shard_term_features[0][t] = ShardTermFeat()
-            shard_term_features[0][t].df += df
-            shard_term_features[0][t].e += e * df
-            shard_term_features[0][t].sqr_e += sqr_e * df
+            shard_term_features[0][t].df += feat.df
+            shard_term_features[0][t].e += feat.e * feat.df
+            shard_term_features[0][t].sqr_e += feat.sqr_e * feat.df
     for t in shard_term_features[0]:
         shard_term_features[0][t].e /= shard_term_features[0][t].df
         shard_term_features[0][t].sqr_e /= shard_term_features[0][t].df
@@ -272,7 +310,10 @@ def main():
     shard_features[0].size = sum([s.size for s in shard_features[1:]])
 
     for query_id, query in queries:
-        qterms = [t.strip() for t in query.split()]
+        qterms = [t.strip() for t in query.split() if t.strip() != '0']
+        for s in range(n_shards + 1):
+            shard_features[s].clear()
+
         res = rank_taily(shard_term_features, qterms, args.n_c, shard_features)
 
         outfile_path = "{0}/{1}.rank_taily".format(res_dir, query_id)
