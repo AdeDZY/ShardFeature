@@ -14,7 +14,8 @@ if __name__ == '__main__':
     shards = []
     for line in open(shard_file):
         shards.append(line.strip())
-    fields = ["title", "url", "inlink"]
+    #fields = ["title", "url", "inlink"]
+    fields = ["title", "inlink"]
     for shard in shards:
         feat_file_path = "{0}/features/{1}.feat_fielded".format(base_dir, shard)
         fdx = -1

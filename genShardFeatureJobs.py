@@ -73,7 +73,8 @@ for shardmap in shardmaps:
                                          feat_dir + '/' + shardmap + '.feat_bigram',
                                          args.query_term_file)
     if args.fielded:
-        execuatable = "./shardFeature_fielded"
+        print "using field_gov2..."
+        execuatable = "./shardFeature_fielded_gov2"
         arguments = "{0} {1} {2} {3}".format(args.repo_dir,
                                          args.shardmaps_dir + '/' + shardmap,
                                          feat_dir + '/' + shardmap + '.feat_fielded',
@@ -83,7 +84,12 @@ for shardmap in shardmaps:
     err = base_dir + "/err"
 
     job = jobWriter.jobGenerator(execuatable, arguments, log, err, out)
-    job_file = open("{0}/{1}_feat.job".format(jobs_dir, shardmap), 'w')
+    if args.bigram:
+        job_file = open("{0}/{1}_bigram.job".format(jobs_dir, shardmap), 'w')
+    elif args.fielded:
+        job_file = open("{0}/{1}_fielded.job".format(jobs_dir, shardmap), 'w')
+    else:
+        job_file = open("{0}/{1}_feat.job".format(jobs_dir, shardmap), 'w')
     job_file.write(job)
     job_file.close()
 

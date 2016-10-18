@@ -94,7 +94,7 @@ def stats(qterms, feat, dfs):
         s3 = max([feat[token][1] * np.log(50220423.0/tokens_dfs[i]) for i, token in enumerate(tokens)])
         s5 = max([feat[token][0] for token in tokens])
         s7 = max([feat[token][0] * np.log(50220423.0/tokens_dfs[i]) for i, token in enumerate(tokens)])
-    if has_all_tokens:
+    if tokens and has_all_tokens:
         s2 = min([feat[token][1] for token in tokens])
         s4 = min([feat[token][1] * np.log(50220423.0/tokens_dfs[i]) for i, token in enumerate(tokens)])
         s6 = min([feat[token][0] for token in tokens])
@@ -110,8 +110,9 @@ def gen_lst(shards_features, ref_dv, ref, query, method, miu, lamb, shards_tf, s
     # read dfs
     dfs = {} 
     #for line in open("dfs.cwb"):
-    for line in open("dfs.mqt"):
-        token, df = line.split()
+    #for line in open("dfs.mqt"):
+    for line in open("dfs.gov2aol_new"):
+        token, df = line.strip().split()
         df = int(df)
         dfs[token] = df
 

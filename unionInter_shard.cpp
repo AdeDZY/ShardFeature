@@ -204,6 +204,8 @@ int main(int argc, char **argv){
     for(int i = 0; i < intids.size(); i++){
         intid = intids[i];
         get_document_vector(index, intid, queryTerms, queries, res_inter, res_union, shardids[i]);
+        if(i%1000 == 0)
+            cout<<i<<endl;
     }
 
     IndexEnv.close();
