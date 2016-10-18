@@ -57,7 +57,7 @@ def read_feat_file(filepath):
         feat.e = sum_logprob / df
         feat.sqr_e = sum_sqr_logprob / df
         feat.var = feat.sqr_e - feat.e**2
-        if df == 1 or abs(feat.var) < 0.001:
+        if df == 1 or abs(feat.var) < 0.000999:
             feat.var = 0
         assert (feat.var >= 0), "{0} {1} {2} {3}".format(feat.e, feat.sqr_e, feat.df, feat.var)
         feat.min = min_logprob
@@ -191,7 +191,7 @@ def prepare_shard_features(shard_term_features, qterms, shard_features):
         shard_features[s].all = get_all(shard_features[s].any, s, shard_term_features, qterms)
         shard_features[s].e = get_shard_e(s, shard_term_features, qterms, shift)
         shard_features[s].var = get_shard_var(s, shard_term_features, qterms)
-        if abs(shard_features[s].var) <= 0.0001 or abs(shard_features[s].e) < 0.0001:
+        if abs(shard_features[s].var) <= 0.00001 or abs(shard_features[s].e) < 0.00001:
             shard_features[s].k = -1
             shard_features[s].theta = -1
         else:
@@ -248,15 +248,18 @@ def rank_taily(shard_term_features, qterms, n_c, shard_features):
         ni = shard_features[s].all * pi
 
         # compute normalizer
-        normalizer += ni
+        #normalizer += ni
         taily_scores.append(ni)
 
     # normalize
-    for i in range(len(taily_scores)):
-        taily_scores[i] *= n_c/normalizer
+    #for i in range(len(taily_scores)):
+    #    taily_scores[i] *= n_c#/normalizer
 
     # sort in reverse order and return
-    return sorted([(ni, s + 1) for s, ni in enumerate(taily_scores) if ni > 0], reverse=True)
+    taily_scores = sorted([(ni, s + 1) for s, ni in enumerate(taily_scores) if ni > 0], reverse=True)
+    normalizer = sum([ni for ni, s in taily_scores[0:6]])
+    taily_scores = [(ni * n_c /normalizer, s) for ni, s in taily_scores]
+    return taily_scores
 
 
 def main():
@@ -264,12 +267,12 @@ def main():
     parser.add_argument("partition_name")
     parser.add_argument("int_query_file", type=argparse.FileType('r'), help="queries in int format (queryid:queryterms)")
     parser.add_argument("--n_c", "-n", type=float, default=400)
-    parser.add_argument("--cutoff", "-c", type=int, default=123)
-    # parser.add_argument("--v", "-v", type=float, default=50)
+    #parser.add_argument("--cutoff", "-c", type=int, default=123)
+    parser.add_argument("--v", "-v", type=float, default=50)
     args = parser.parse_args()
 
     # base_dir = "/bos/usr0/zhuyund/partition/ShardFeature/output/" + args.partition_name
-    base_dir = "./data-train/"
+    base_dir = "./data/"
     queries = []
     for query in args.int_query_file:
         query = query.strip()
@@ -315,8 +318,10 @@ def main():
     shard_features[0].size = sum([s.size for s in shard_features[1:]])
 
     outfile_path = base_dir + "/all.shardlist_taily".format(res_dir, query_id)
+    outfile_path_2 = base_dir + "/all.shardlist_tail_score".format(res_dir, query_id)
     outfile = open(outfile_path, 'w')
-
+    outfile2 = open(outfile_path_2, 'w')
+    n_selected = 0
     for query_id, query in queries:
         qterms = [t.strip() for t in query.split() if t.strip() != '0']
         if not qterms:
@@ -326,12 +331,23 @@ def main():
 
         res = rank_taily(shard_term_features, qterms, args.n_c, shard_features)
         outfile.write(str(query_id))
+        outfile2.write(str(query_id))
+
+        flag = False
         for i, item in enumerate(res):
             score, shard = item
+            if flag and score < args.v:
+                break
             outfile.write(' {0}'.format(shard))
+            outfile2.write(' {0}:{1}'.format(shard, score))
+            flag = True
+            n_selected += 1
         outfile.write('\n')
+        outfile2.write('\n')
 
     outfile.close()
+    outfile2.close()
+    print n_selected/1000.0
 
 if __name__ == '__main__':
     main()
