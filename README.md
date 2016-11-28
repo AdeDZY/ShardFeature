@@ -1,4 +1,6 @@
 # ShardFeature
+Generate index-based features for LeToRResources and SHRCK.
+Use '-h' to get help message in most python scripts.
 
 ## Compile
 1. modify Makefile.app using your indri.
