@@ -16,7 +16,8 @@ args = parser.parse_args()
 
 dic = {}
 for line in args.query_term2int_file:
-    term, term_id = line.split()[0:2]
+    #term, term_id = line.split()[0:2]
+    term, tmp, term_id = line.split()[0:3]
     dic[term] = term_id
 
 qid = args.start_query_id
